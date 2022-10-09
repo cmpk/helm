@@ -1,0 +1,29 @@
+resources:
+  requests:
+    cpu: "1"
+  limits:
+    cpu: "1.5"
+image:
+  repository: "python"
+  tag: "latest"
+command:
+  - "/bin/sh"
+  - "-c"
+  - "sleep 10"
+
+pods:
+  podA:
+    resources:
+      requests:
+        cpu: "2"
+      limits:
+        cpu: "2.5"
+    image:
+      repository: "ruby"
+      tag: "3.7"
+    command:
+      - "/bin/sh"
+      - "-c"
+      - "sleep 20"
+
+  podB: {}

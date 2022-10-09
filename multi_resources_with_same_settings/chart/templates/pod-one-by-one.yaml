@@ -1,0 +1,46 @@
+---
+# Pod A 用のマニフェスト
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "pod-a"
+spec:
+  containers:
+    - name: "web"
+      image: {{ printf "%s:%s" .Values.pods.podA.image.repository .Values.pods.podA.image.tag | quote }}
+      command:
+      # command部分は右記の書き方も可能 : nindent 8 (toYaml .Values.pods.podA.command
+      {{- range .Values.pods.podA.command }}
+      - {{ . | quote }}
+      {{- end }}
+      resources:
+        {{- nindent 8 (toYaml .Values.pods.podA.resources) }}
+---
+# Pod B 用のマニフェスト
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "pod-b"
+spec:
+  containers:
+    - name: "web"
+      # ヘルパー関数の引数が複数ある場合は dict 形式で渡す
+      {{- $repository := include "getValue" (dict "root" .Values "settings" .Values.pods.podB "place" "image.repository") }}
+      {{- $tag := include "getValue" (dict "root" .Values "settings" .Values.pods.podB "place" "image.tag") }}
+      image: {{ printf "%s:%s" $repository $tag | quote }}
+      command:
+      {{- if include "hasValues" (dict "settings" .Values.pods.podB "place" "command") }}
+      {{- range .Values.pods.podB.command }}
+      - {{ . | quote }}
+      {{- end }}
+      {{- else }}
+      {{- range .Values.command }}
+      - {{ . | quote }}
+      {{- end }}
+      {{- end }}
+      resources:
+        {{- if include "hasValues" (dict "settings" .Values.pods.podB "place" "resources") }}
+        {{- nindent 8 (toYaml .Values.pods.podB.resources) }}
+        {{- else }}
+        {{- nindent 8 (toYaml .Values.resources) }}
+        {{- end }}

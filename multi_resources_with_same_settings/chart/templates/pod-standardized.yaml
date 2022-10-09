@@ -1,0 +1,29 @@
+{{- range $name, $settings := .Values.pods }}
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: {{ $name }}
+spec:
+  containers:
+    - name: "web"
+      {{- $repository := include "getValue" (dict "root" $.Values "settings" $settings "place" "image.repository") }}
+      {{- $tag := include "getValue" (dict "root" $.Values "settings" $settings "place" "image.tag") }}
+      image: {{ printf "%s:%s" $repository $tag | quote }}
+      command:
+      {{- if include "hasValues" (dict "settings" $settings "place" "command") }}
+      {{- range $settings.command }}
+      - {{ . | quote }}
+      {{- end }}
+      {{- else }}
+      {{- range $.Values.command }}
+      - {{ . | quote }}
+      {{- end }}
+      {{- end }}
+      resources:
+        {{- if include "hasValues" (dict "settings" $settings "place" "resources") }}
+        {{- nindent 8 (toYaml $settings.resources) }}
+        {{- else }}
+        {{- nindent 8 (toYaml $.Values.resources) }}
+        {{- end }}
+{{- end }}
